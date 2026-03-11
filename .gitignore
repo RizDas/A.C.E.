@@ -1,0 +1,101 @@
+# ============================================================
+# NODE
+# ============================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnp
+.pnp.js
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ============================================================
+# NEXT.JS
+# ============================================================
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel
+frontend/.turbo
+
+# Static export
+/out
+
+# Next.js cache
+.next/cache/
+
+# ============================================================
+# TYPESCRIPT
+# ============================================================
+*.tsbuildinfo
+dist/
+build/
+
+# ============================================================
+# ENVIRONMENT VARIABLES — never commit these
+# ============================================================
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+
+# ============================================================
+# BACKEND
+# ============================================================
+backend/dist/
+backend/build/
+
+# ============================================================
+# EDITOR & OS
+# ============================================================
+# VSCode
+.vscode/
+!.vscode/extensions.json
+
+# JetBrains IDEs
+.idea/
+*.iml
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ============================================================
+# LOGS
+# ============================================================
+logs/
+*.log
+*.log.*
+
+# ============================================================
+# TESTING
+# ============================================================
+coverage/
+.nyc_output/
+*.lcov
+
+# ============================================================
+# MISC
+# ============================================================
+*.tgz
+*.zip
+.cache/
+tmp/
+temp/
