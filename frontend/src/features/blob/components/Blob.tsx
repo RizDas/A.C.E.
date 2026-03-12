@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState, useCallback, PointerEvent as ReactPointerEvent } from 'react';
 import * as THREE from 'three';
 import { useBlobContext } from '../../../context/BlobContext';
+import { useAIContext } from '../../../context/AIContext';
+import { useUIContext } from '../../../context/UIContext';
 import { useBlobAudio } from '../hooks/useBlobAudio';
 import { useSpeechRecognition } from '../../chat/hooks/useSpeechRecognition';
 import { useChat } from '../../chat/hooks/useChat';
@@ -25,9 +27,8 @@ export default function Blob() {
     const mainGroupRef = useRef<THREE.Group | null>(null);
     const plasmaMeshRef = useRef<THREE.Mesh | null>(null);
 
-    const { 
-        settings, setPosition, clearTranscript, _toggleTrigger
-    } = useBlobContext();
+    const { settings, setPosition } = useBlobContext();
+    const { clearTranscript, _toggleTrigger } = useAIContext();
     const { color, size, position, dragMode } = settings;
 
     const [blobState, setBlobState] = useState<BlobState>('idle');

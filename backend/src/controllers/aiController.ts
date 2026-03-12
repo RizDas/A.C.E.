@@ -9,15 +9,18 @@ const groq = new Groq({
 });
 
 export const getChatStream = async (req: Request, res: Response) => {
-    const { message } = req.body;
+    const { message, history } = req.body;
 
     try {
+        const messages = [
+            { role: "system", content: "You are A.C.E. (Adaptive Cognitive Engine), my advanced humanoid AI personal assistant. Your primary function is to assist me. By default, keep your responses extremely concise (1-2 lines). However, if I explicitly ask for more detail, a longer explanation, or to 'tell more', provide a comprehensive response." },
+            ...(history || []),
+            { role: "user", content: message }
+        ];
+
         const stream = await groq.chat.completions.create({
             model: "llama-3.1-8b-instant",
-            messages: [
-                { role: "system", content: "You are A.C.E. (Adaptive Cognitive Engine), my advanced humanoid AI personal assistant. Your primary function is to assist me. By default, keep your responses extremely concise (1-2 lines). However, if I explicitly ask for more detail, a longer explanation, or to 'tell more', provide a comprehensive response." },
-                { role: "user", content: message }
-            ],
+            messages,
             stream: true,
         });
 

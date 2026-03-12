@@ -1,5 +1,8 @@
+import { ChatMessage } from "../context/AIContext";
+
 export async function getChatStream(
     message: string,
+    history: ChatMessage[],
     onChunk: (chunk: string) => void,
     onComplete: (fullText: string) => void
 ) {
@@ -9,7 +12,7 @@ export async function getChatStream(
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ message }),
+            body: JSON.stringify({ message, history }),
         });
 
         if (!response.ok) {

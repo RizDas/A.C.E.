@@ -1,8 +1,13 @@
-import { useRef, useCallback } from 'react';
-import { useBlobContext } from '../../../context/BlobContext';
+import { useRef, useCallback, useEffect } from 'react';
 
 export function useSpeechRecognition(onResult: (transcript: string, isFinal: boolean) => void) {
     const recognitionRef = useRef<any>(null);
+    const onResultRef = useRef(onResult);
+
+    // Keep the ref updated with the latest callback
+    useEffect(() => {
+        onResultRef.current = onResult;
+    }, [onResult]);
 
     const startSpeechRecognition = useCallback(() => {
         if (typeof window !== 'undefined') {
@@ -15,14 +20,12 @@ export function useSpeechRecognition(onResult: (transcript: string, isFinal: boo
                 recognition.onresult = (event: any) => {
                     let interimTranscript = '';
                     
-                    // Handle any new final segments
                     for (let i = event.resultIndex; i < event.results.length; ++i) {
                         if (event.results[i].isFinal) {
-                            onResult(event.results[i][0].transcript, true);
+                            onResultRef.current(event.results[i][0].transcript, true);
                         }
                     }
 
-                    // Accumulate ALL current interim segments for a complete "ongoing" sentence
                     for (let i = 0; i < event.results.length; ++i) {
                         if (!event.results[i].isFinal) {
                             interimTranscript += event.results[i][0].transcript;
@@ -30,7 +33,7 @@ export function useSpeechRecognition(onResult: (transcript: string, isFinal: boo
                     }
 
                     if (interimTranscript) {
-                        onResult(interimTranscript, false);
+                        onResultRef.current(interimTranscript, false);
                     }
                 };
 

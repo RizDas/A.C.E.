@@ -1,11 +1,13 @@
 'use client';
 
-import { useBlobContext } from '../../../context/BlobContext';
+import { useAIContext } from '../../../context/AIContext';
+import { useUIContext } from '../../../context/UIContext';
 import { useEffect, useRef, useState } from 'react';
 
 export default function ResponseTerminal() {
-  const { app, ui, setLlmTerminalPosition } = useBlobContext();
-  const { aiResponse, aiHistory, isProcessing } = app;
+  const { state, clearAiHistory } = useAIContext();
+  const { aiResponse, aiHistory, isProcessing } = state;
+  const { ui, setLlmTerminalPosition } = useUIContext();
   const { position: llmTerminalPosition, dragMode: llmTerminalDragMode } = ui.llmTerminal;
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -172,12 +174,31 @@ export default function ResponseTerminal() {
       <div className="terminal-header">
         <div className="terminal-dot" />
         <span className="terminal-title">A.C.E Core Response</span>
+        {aiHistory.length > 0 && (
+          <button 
+            onClick={clearAiHistory}
+            className="terminal-title"
+            style={{ 
+              marginLeft: '12px', 
+              cursor: 'pointer', 
+              border: 'none', 
+              background: 'none', 
+              padding: 0,
+              opacity: 0.4,
+              transition: 'opacity 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
+            onMouseOut={(e) => e.currentTarget.style.opacity = '0.4'}
+          >
+            [CLEAR]
+          </button>
+        )}
         {isProcessing && <span className="terminal-title" style={{ marginLeft: 'auto', opacity: 0.5, animation: 'pulse 1.2s infinite' }}>Processing...</span>}
       </div>
 
       <div className="terminal-content" ref={scrollRef}>
-        {aiHistory.map((line: string, i: number) => (
-          <div key={i} className="terminal-line">{`# ${line}`}</div>
+        {aiHistory.map((msg, i) => (
+          <div key={i} className="terminal-line">{`${msg.role === 'user' ? '>' : '#'} ${msg.content}`}</div>
         ))}
         {aiResponse && (
           <div className="terminal-line active">

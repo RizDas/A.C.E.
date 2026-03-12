@@ -2,12 +2,17 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useBlobContext } from '../../../context/BlobContext';
+import { useAIContext } from '../../../context/AIContext';
+import { useUIContext } from '../../../context/UIContext';
 
 export default function StatusMonitor() {
-  const { settings, ui, app, setStatusTerminalPosition, toggleMic } = useBlobContext();
+  const { settings } = useBlobContext();
+  const { state, toggleMic } = useAIContext();
+  const { ui, setStatusTerminalPosition } = useUIContext();
+  
   const { color } = settings;
   const { position: statusTerminalPosition, dragMode: statusTerminalDragMode } = ui.statusTerminal;
-  const { isMicActive, hasMicPermission, isApiConnected, isProcessing } = app;
+  const { isMicActive, hasMicPermission, isApiConnected, isProcessing } = state;
 
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });

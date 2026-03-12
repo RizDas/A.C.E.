@@ -1,6 +1,8 @@
 'use client';
 
 import { useBlobContext } from '../../../context/BlobContext';
+import { useAIContext } from '../../../context/AIContext';
+import { useUIContext } from '../../../context/UIContext';
 
 const BLOB_COLORS = [
   { deep: '#003344', mid: '#0088aa', bright: '#00ffee' }, // Cyan
@@ -12,10 +14,8 @@ const BLOB_COLORS = [
 ];
 
 export default function SettingsPanel() {
-  const { 
-    settings, ui, setColor, setSize, setDragMode, 
-    setTerminalDragMode, setLlmTerminalDragMode, setStatusTerminalDragMode
-  } = useBlobContext();
+  const { settings, setColor, setSize, setDragMode } = useBlobContext();
+  const { ui, setTerminalDragMode, setLlmTerminalDragMode, setStatusTerminalDragMode } = useUIContext();
   
   const { size, color, dragMode } = settings;
   const { dragMode: terminalDragMode } = ui.terminal;

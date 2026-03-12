@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from 'react';
-import { useBlobContext } from '../../../context/BlobContext';
+import { useAIContext } from '../../../context/AIContext';
 
 export function useBlobAudio() {
     const audioContextRef = useRef<AudioContext | null>(null);
@@ -10,7 +10,7 @@ export function useBlobAudio() {
     const [micAllowed, setMicAllowed] = useState(false);
     const [micError, setMicError] = useState('');
 
-    const { setMicActive, setMicPermission } = useBlobContext();
+    const { setMicActive, setMicPermission } = useAIContext();
 
     const startMic = useCallback(async () => {
         try {

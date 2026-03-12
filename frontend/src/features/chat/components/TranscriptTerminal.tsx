@@ -1,11 +1,13 @@
 'use client';
 
-import { useBlobContext } from '../../../context/BlobContext';
+import { useAIContext } from '../../../context/AIContext';
+import { useUIContext } from '../../../context/UIContext';
 import { useEffect, useRef, useState } from 'react';
 
 export default function TranscriptTerminal() {
-  const { app, ui, setTerminalPosition } = useBlobContext();
-  const { currentTranscript, transcriptHistory } = app;
+  const { state } = useAIContext();
+  const { currentTranscript, transcriptHistory } = state;
+  const { ui, setTerminalPosition } = useUIContext();
   const { position: terminalPosition, dragMode: terminalDragMode } = ui.terminal;
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
