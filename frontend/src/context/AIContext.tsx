@@ -16,6 +16,7 @@ export interface AIState {
   isApiConnected: boolean;
   currentTranscript: string;
   transcriptHistory: string[];
+  isAwake: boolean;
 }
 
 type AIContextType = {
@@ -31,6 +32,7 @@ type AIContextType = {
   clearTranscript: () => void;
   clearAiHistory: () => void;
   toggleMic: () => void;
+  setIsAwake: (b: boolean) => void;
   _toggleTrigger: number;
 };
 
@@ -43,6 +45,7 @@ const defaultState: AIState = {
   isApiConnected: true,
   currentTranscript: '',
   transcriptHistory: [],
+  isAwake: false,
 };
 
 const AIContext = createContext<AIContextType | undefined>(undefined);
@@ -64,6 +67,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
   const setMicActive = (isMicActive: boolean) => setState(s => ({ ...s, isMicActive }));
   const setMicPermission = (hasMicPermission: boolean) => setState(s => ({ ...s, hasMicPermission }));
   const setApiConnected = (isApiConnected: boolean) => setState(s => ({ ...s, isApiConnected }));
+  const setIsAwake = (isAwake: boolean) => setState(s => ({ ...s, isAwake }));
   const setTranscript = (currentTranscript: string) => setState(s => ({ ...s, currentTranscript }));
   
   const addTranscriptHistory = (text: string) => setState(s => ({
@@ -82,7 +86,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
       setAiResponse, addAiHistory, setIsProcessing,
       setMicActive, setMicPermission, setApiConnected,
       setTranscript, addTranscriptHistory, clearTranscript,
-      clearAiHistory, toggleMic, _toggleTrigger: toggleTrigger 
+      clearAiHistory, toggleMic, setIsAwake, _toggleTrigger: toggleTrigger 
     }}>
       {children}
     </AIContext.Provider>
