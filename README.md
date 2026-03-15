@@ -124,12 +124,6 @@ A.C.E/
 
 ---
 
-## License
-
-This project is licensed under the [ISC License](LICENSE).
-
----
-
 ## Contributing
 
 Technical contributions and issue reports are welcome. Please adhere to standard pull request protocols for submissions.
