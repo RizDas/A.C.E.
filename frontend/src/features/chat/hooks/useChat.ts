@@ -2,6 +2,23 @@ import { useCallback } from 'react';
 import { useAIContext } from '../../../context/AIContext';
 import { getChatStream } from '../../../services/aiService';
 import { speak } from '../../../services/ttsService';
+import { resolveAndOpenUrl } from '../../../services/urlService';
+
+/**
+ * Detects whether the user's transcript is an intent to open a URL/site/page.
+ * Examples: "open YouTube", "launch Spotify", "go to Facebook",
+ *           "open quantum computing on Wikipedia", "navigate to GitHub"
+ */
+function isOpenIntent(transcript: string): boolean {
+    const openIntentRegex =
+        /\b(open|launch|navigate to|go to|show me|take me to|pull up|load)\b.{1,60}?(\bon\b.{1,30}?(wikipedia|wiki|youtube|google|reddit|twitter|x\.com|instagram|facebook|github|spotify|netflix|amazon|twitch|pinterest|linkedin|tiktok|discord|whatsapp|telegram|maps|gmail|outlook|yahoo)|(?:https?:\/\/\S+))?/i;
+
+    // Also catch: "open that thing on Wikipedia", "open Facebook", "launch YouTube"
+    const simpleOpenRegex =
+        /\b(open|launch|navigate to|go to|pull up|load)\b\s+\S+/i;
+
+    return openIntentRegex.test(transcript) || simpleOpenRegex.test(transcript);
+}
 
 export function useChat() {
     const { 
@@ -22,8 +39,6 @@ export function useChat() {
                 shouldProcess = true;
             } else if (state.isAwake && sleepWordRegex.test(transcript)) {
                 setIsAwake(false);
-                // We still process the transcript containing the sleep word
-                // so the AI can say "goodbye" or acknowledge it.
                 shouldProcess = true; 
             }
 
@@ -31,9 +46,21 @@ export function useChat() {
                 setIsProcessing(true);
                 addAiHistory('user', transcript);
 
+                // --- URL-opening intent ---
+                // Fire in parallel: resolve + open the URL while the chat stream
+                // also runs so ACE can verbally confirm what it opened.
+                if (isOpenIntent(transcript)) {
+                    resolveAndOpenUrl(transcript).then((result) => {
+                        if (result) {
+                            // Speak a quick confirmation in addition to whatever the LLM says
+                            console.log(`[A.C.E] Opened: ${result.label} → ${result.url}`);
+                        }
+                    });
+                }
+
                 getChatStream(
                     transcript,
-                    state.aiHistory, // Pass current history
+                    state.aiHistory,
                     (chunk) => {
                         setAiResponse((prev: string) => prev + chunk);
                     },
@@ -53,3 +80,4 @@ export function useChat() {
         handleSpeechResult
     };
 }
+
