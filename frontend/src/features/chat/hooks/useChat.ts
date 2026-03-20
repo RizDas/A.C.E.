@@ -2,22 +2,23 @@ import { useCallback } from 'react';
 import { useAIContext } from '../../../context/AIContext';
 import { getChatStream } from '../../../services/aiService';
 import { speak } from '../../../services/ttsService';
-import { resolveAndOpenUrl } from '../../../services/urlService';
+import { resolveAndOpenUrls, resolveAndCloseTabs } from '../../../services/urlService';
 
 /**
- * Detects whether the user's transcript is an intent to open a URL/site/page.
- * Examples: "open YouTube", "launch Spotify", "go to Facebook",
- *           "open quantum computing on Wikipedia", "navigate to GitHub"
+ * Detects an intent to OPEN one or more URLs/sites.
+ * e.g. "open YouTube", "launch Instagram and Discord", "go to Wikipedia"
  */
 function isOpenIntent(transcript: string): boolean {
-    const openIntentRegex =
-        /\b(open|launch|navigate to|go to|show me|take me to|pull up|load)\b.{1,60}?(\bon\b.{1,30}?(wikipedia|wiki|youtube|google|reddit|twitter|x\.com|instagram|facebook|github|spotify|netflix|amazon|twitch|pinterest|linkedin|tiktok|discord|whatsapp|telegram|maps|gmail|outlook|yahoo)|(?:https?:\/\/\S+))?/i;
+    return /\b(open|launch|navigate to|go to|show me|take me to|pull up|load)\b/i.test(transcript);
+}
 
-    // Also catch: "open that thing on Wikipedia", "open Facebook", "launch YouTube"
-    const simpleOpenRegex =
-        /\b(open|launch|navigate to|go to|pull up|load)\b\s+\S+/i;
-
-    return openIntentRegex.test(transcript) || simpleOpenRegex.test(transcript);
+/**
+ * Detects an intent to CLOSE one or more tabs.
+ * e.g. "close YouTube", "shut the Instagram tab", "close all tabs"
+ */
+function isCloseIntent(transcript: string): boolean {
+    return /\b(close|shut|exit|kill)\b.{0,30}?\b(tab|window|youtube|instagram|discord|facebook|spotify|netflix|reddit|github|twitter|wikipedia|twitch|amazon|gmail|outlook|maps|linkedin|tiktok|discord|whatsapp|telegram|pinterest)\b/i.test(transcript)
+        || /\bclose (all|every(thing)?)\b/i.test(transcript);
 }
 
 export function useChat() {
@@ -46,18 +47,24 @@ export function useChat() {
                 setIsProcessing(true);
                 addAiHistory('user', transcript);
 
-                // --- URL-opening intent ---
-                // Fire in parallel: resolve + open the URL while the chat stream
-                // also runs so ACE can verbally confirm what it opened.
-                if (isOpenIntent(transcript)) {
-                    resolveAndOpenUrl(transcript).then((result) => {
-                        if (result) {
-                            // Speak a quick confirmation in addition to whatever the LLM says
-                            console.log(`[A.C.E] Opened: ${result.label} → ${result.url}`);
+                // --- Close-tab intent (check before open so "close YouTube" doesn't also open) ---
+                if (isCloseIntent(transcript)) {
+                    resolveAndCloseTabs(transcript).then((closed) => {
+                        if (closed.length > 0) {
+                            console.log(`[A.C.E] Closed tabs: ${closed.join(', ')}`);
+                        }
+                    });
+                }
+                // --- Open-URL intent: resolve and open all mentioned sites in parallel ---
+                else if (isOpenIntent(transcript)) {
+                    resolveAndOpenUrls(transcript).then((opened) => {
+                        if (opened.length > 0) {
+                            console.log(`[A.C.E] Opened: ${opened.map(u => u.label).join(', ')}`);
                         }
                     });
                 }
 
+                // Chat stream always runs (ACE speaks a natural verbal confirmation)
                 getChatStream(
                     transcript,
                     state.aiHistory,
@@ -80,4 +87,3 @@ export function useChat() {
         handleSpeechResult
     };
 }
-
