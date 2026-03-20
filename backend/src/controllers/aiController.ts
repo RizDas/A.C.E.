@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import Groq from 'groq-sdk';
 import dotenv from 'dotenv';
+import { exec } from 'child_process';
 
 dotenv.config();
 
@@ -42,25 +43,25 @@ export const getChatStream = async (req: Request, res: Response) => {
     }
 };
 
-export const getOpenUrl = async (req: Request, res: Response) => {
-    const { message } = req.body;
+export const getOpenIntent = async (req: Request, res: Response) => {
+    const { message, history } = req.body;
 
     if (!message) {
         res.status(400).json({ error: 'No message provided.' });
         return;
     }
 
-    const systemPrompt = `You are a URL resolver for an AI assistant called A.C.E.
-The user may want to open ONE or MULTIPLE websites/pages in a single request.
+    const systemPrompt = `You are an Intent Resolver for an AI assistant called A.C.E.
+The user wants to open ONE or MULTIPLE applications, websites, or pages in a single request.
 
 Rules:
-- Return ONLY a valid JSON object: { "urls": [ { "url": "<full URL>", "label": "<short name>" }, ... ] }
-- Always return an ARRAY even if there is only one site.
-- Each URL must be fully qualified starting with https://
-- For well-known sites use their homepage (e.g. "YouTube" → https://www.youtube.com, "Instagram" → https://www.instagram.com, "Discord" → https://discord.com)
-- For Wikipedia lookups (e.g. "open quantum computing on Wikipedia") use the specific article: https://en.wikipedia.org/wiki/Quantum_computing
-- For ambiguous/unknown requests use a Google search: https://www.google.com/search?q=<query>
-- Labels should be short and human-friendly: "YouTube", "Instagram", "Wikipedia: Quantum Computing"
+- Return ONLY a valid JSON object: { "actions": [ { "type": "web" | "app", "target": "<URL or app command>", "label": "<short name>" }, ... ] }
+- Always return an ARRAY under "actions", even for one item.
+- For websites (type: "web"): "target" must be a fully qualified URL starting with https://.
+- For apps on the user's PC (type: "app"): "target" should be the system command or executable name (e.g., "start cmd" for Command Prompt, "code" for VS Code, "explorer" for File Explorer, "calc" for Calculator, "notepad" for Notepad).
+- For well-known websites use their homepage. For Wikipedia lookups use the specific article. For ambiguous requests use a Google search.
+- Labels should be short and human-friendly: "YouTube", "Command Prompt", "VS Code", "Wikipedia: Quantum Computing"
+- CRITICAL: Return actions ONLY for items explicitly requested in the user's message. Do NOT include examples like YouTube unless requested.
 - Do NOT include markdown, code blocks, or any text outside the JSON object.
 - Do NOT explain yourself.`;
 
@@ -69,6 +70,7 @@ Rules:
             model: 'llama-3.1-8b-instant',
             messages: [
                 { role: 'system', content: systemPrompt },
+                ...(history || []),
                 { role: 'user', content: message },
             ],
             stream: false,
@@ -77,22 +79,53 @@ Rules:
 
         const raw = completion.choices[0]?.message?.content?.trim() || '';
         const jsonStr = raw.replace(/^```[\w]*\n?/, '').replace(/```$/, '').trim();
-        const parsed = JSON.parse(jsonStr);
+        let parsed: any = {};
+        try {
+            parsed = JSON.parse(jsonStr);
+        } catch (e) {
+            console.error('[A.C.E Backend] Failed to parse JSON:', jsonStr);
+        }
 
-        // Normalise: accept both { urls: [...] } and legacy { url, label }
-        const urls: { url: string; label: string }[] = Array.isArray(parsed.urls)
-            ? parsed.urls
-            : parsed.url
-            ? [{ url: parsed.url, label: parsed.label || parsed.url }]
-            : [];
+        let actions: { type: string; target: string; label: string }[] = [];
+        
+        if (Array.isArray(parsed.actions)) {
+            actions = parsed.actions;
+        } else if (parsed.actions && typeof parsed.actions === 'object') {
+            actions = [parsed.actions];
+        } else if (parsed.action && typeof parsed.action === 'object') {
+            actions = [parsed.action];
+        } else if (Array.isArray(parsed.urls)) {
+            actions = parsed.urls.map((u: any) => ({ type: 'web', target: u.url, label: u.label }));
+        } else if (parsed.url) {
+            actions = [{ type: 'web', target: parsed.url, label: parsed.label || parsed.url }];
+        }
 
-        const valid = urls.filter(u => u.url && u.url.startsWith('http'));
-        if (valid.length === 0) throw new Error('No valid URLs in LLM response');
+        const frontendActions = [];
+        for (const action of actions) {
+            if (action.type === 'app' && action.target) {
+                console.log(`[A.C.E Backend] Launching app: ${action.target}`);
+                
+                // Use 'start ""' on Windows to spawn a new detached window visibly
+                let cmd = action.target;
+                if (!cmd.toLowerCase().startsWith('start ')) {
+                    cmd = `start "" "${cmd}"`;
+                }
+                
+                exec(cmd, (error) => {
+                    if (error) console.error(`Failed to launch app ${action.target}:`, error);
+                });
+                frontendActions.push(action);
+            } else if (action.type === 'web' && action.target && action.target.startsWith('http')) {
+                frontendActions.push(action);
+            }
+        }
 
-        res.json({ urls: valid });
+        if (frontendActions.length === 0) throw new Error('No valid actions in LLM response');
+
+        res.json({ actions: frontendActions });
     } catch (error) {
-        console.error('Open URL Error:', error);
-        res.status(500).json({ error: 'Could not resolve URLs for that request.' });
+        console.error('Open Intent Error:', error);
+        res.status(500).json({ error: 'Could not resolve actions for that request.' });
     }
 };
 

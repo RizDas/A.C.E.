@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useAIContext } from '../../../context/AIContext';
 import { getChatStream } from '../../../services/aiService';
 import { speak } from '../../../services/ttsService';
-import { resolveAndOpenUrls, resolveAndCloseTabs } from '../../../services/urlService';
+import { resolveAndOpenIntents, resolveAndCloseTabs } from '../../../services/urlService';
 
 /**
  * Detects an intent to OPEN one or more URLs/sites.
@@ -55,11 +55,11 @@ export function useChat() {
                         }
                     });
                 }
-                // --- Open-URL intent: resolve and open all mentioned sites in parallel ---
+                // --- Open-Intent: resolve and open/launch all mentioned sites/apps in parallel ---
                 else if (isOpenIntent(transcript)) {
-                    resolveAndOpenUrls(transcript).then((opened) => {
+                    resolveAndOpenIntents(transcript, state.aiHistory).then((opened) => {
                         if (opened.length > 0) {
-                            console.log(`[A.C.E] Opened: ${opened.map(u => u.label).join(', ')}`);
+                            console.log(`[A.C.E] Opened/Launched: ${opened.map(u => u.label).join(', ')}`);
                         }
                     });
                 }

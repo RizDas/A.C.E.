@@ -1,5 +1,6 @@
-export interface UrlResult {
-    url: string;
+export interface IntentAction {
+    type: 'web' | 'app';
+    target: string;
     label: string;
 }
 
@@ -19,37 +20,41 @@ export function getOpenTabLabels(): string[] {
 }
 
 /**
- * Calls /api/open-url, opens ALL resolved URLs in new tabs,
- * stores window references, and returns the resolved list for TTS.
+ * Calls /api/open-intent, opens ALL resolved web URLs in new tabs,
+ * and returns the combined list of apps/sites for TTS confirmation.
  */
-export async function resolveAndOpenUrls(message: string): Promise<UrlResult[]> {
+export async function resolveAndOpenIntents(message: string, history: any[] = []): Promise<IntentAction[]> {
     try {
-        const response = await fetch('http://localhost:3001/api/open-url', {
+        const response = await fetch('http://localhost:3001/api/open-intent', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message }),
+            body: JSON.stringify({ message, history }),
         });
 
         if (!response.ok) {
-            console.error('Open URL backend error:', response.statusText);
+            console.error('Open Intent backend error:', response.statusText);
             return [];
         }
 
-        const data: { urls: UrlResult[] } = await response.json();
-        const opened: UrlResult[] = [];
+        const data: { actions: IntentAction[] } = await response.json();
+        const opened: IntentAction[] = [];
 
-        for (const item of data.urls ?? []) {
-            if (!item.url) continue;
-            const win = window.open(item.url, '_blank', 'noopener,noreferrer');
-            if (win) {
-                openedWindows.set(item.label.toLowerCase(), win);
+        for (const item of data.actions ?? []) {
+            if (item.type === 'web' && item.target) {
+                const win = window.open(item.target, '_blank', 'noopener,noreferrer');
+                if (win) {
+                    openedWindows.set(item.label.toLowerCase(), win);
+                }
+                opened.push(item);
+            } else if (item.type === 'app') {
+                // App was already launched by the backend, just acknowledge it
                 opened.push(item);
             }
         }
 
         return opened;
     } catch (error) {
-        console.error('resolveAndOpenUrls failed:', error);
+        console.error('resolveAndOpenIntents failed:', error);
         return [];
     }
 }
