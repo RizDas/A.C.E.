@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useAIContext } from '../../../context/AIContext';
 import { getChatStream } from '../../../services/aiService';
-import { speak } from '../../../services/ttsService';
+import { speak, stopSpeaking } from '../../../services/ttsService';
 import { resolveAndOpenIntents, resolveAndCloseTabs } from '../../../services/urlService';
 
 /**
@@ -45,6 +45,7 @@ export function useChat() {
 
             if (shouldProcess) {
                 setIsProcessing(true);
+                stopSpeaking(); // Cancel any in-progress speech from previous response
                 addAiHistory('user', transcript);
 
                 // --- Close-tab intent (check before open so "close YouTube" doesn't also open) ---
