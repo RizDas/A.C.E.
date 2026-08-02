@@ -1,123 +1,139 @@
 # A.C.E. - Adaptive Cognitive Engine
 
-**A.C.E. (Adaptive Cognitive Engine)** is a high-performance, humanoid AI personal assistant designed to integrate human intuition with machine intelligence. It features a high-fidelity 3D visualizer, real-time speech processing, and a reactive "Cyberpunk HUD" interface, providing a seamless and professional AI interaction experience.
+**A.C.E. (Adaptive Cognitive Engine)** is an AI-first assistant centered on Groq's `llama-3.1-8b-instant` model. It delivers conversational reasoning, command intent execution, and a responsive visual interface for a modern assistant workflow.
 
 ---
 
-## Key Features
+## What A.C.E. Does
 
-### Intelligent Core
-- **Adaptive Cognitive Engine**: Powered by Groq's Llama 3.1 8B model for low-latency, intelligent responses.
-- **Context Management**: Maintains comprehensive chat history for consistent and meaningful interactions.
-- **Response Versatility**: Configured to provide concise summaries or detailed explanations based on user requirements.
-
-### High-Fidelity Visualizer
-- **3D Neural Core**: A Three.js-powered visual interface that dynamically reacts to system states and user input.
-- **Dynamic Physics**: Fluid animations with adjustable parameters for size, color, and responsiveness.
-- **Positional Control**: Flexible drag-and-drop functionality for optimized workspace integration.
-
-### Immersive Interaction
-- **Real-Time Speech Recognition**: High-accuracy transcription of voice commands using the Web Speech API.
-- **High-Quality Speech Synthesis**: Naturalistic text-to-speech output using premium voice models.
-- **Asynchronous Feedback**: Dedicated interfaces for real-time transcription and AI system responses.
-
-### Advanced HUD and System Monitor
-- **HUD Interface**: A sophisticated, glassmorphic head-up display featuring hex-grids, scanlines, and reactive glow effects.
-- **System Telemetry**: Real-time monitoring of Neural Core synchronization, microphone status, and API health.
-- **Unified Control Panel**: Centralized management for system activation and operational parameters.
+- Uses Groq to generate AI chat responses in the backend.
+- Streams model output to the frontend for low-latency conversational feedback.
+- Translates natural language into structured actions for opening websites, launching apps, and closing tabs.
+- Supports speech capture and live transcription in the UI.
+- Surfaces AI state and system status through a reactive 3D HUD.
 
 ---
 
-## Technical Specifications
+## Core AI Capabilities
+
+### Conversational Intelligence
+- **Streaming responses**: The backend streams Groq chat completions as server-sent events.
+- **Persistent context**: Chat history is preserved for coherent follow-up replies.
+- **Concise default output**: The assistant answers briefly unless additional detail is requested.
+
+### Intent Resolution
+- **Open intent**: Identifies website and application requests and returns structured action payloads.
+- **Close intent**: Matches user commands with open tab labels and closes the intended targets.
+- **Action execution**: Launches apps and emits frontend navigation actions from AI-generated results.
+
+### Controlled Assistant Identity
+- **Strict A.C.E. role**: The model is instructed to always identify as A.C.E.
+- **No persona roleplay**: Prevents responses from adopting unrelated characters or personalities.
+
+---
+
+## Experience Highlights
+
+- **Natural language control**: Ask A.C.E. to browse, open tools, or close tabs using regular speech or text.
+- **Voice-enabled input**: Frontend captures microphone input for hands-free commands.
+- **Reactive HUD**: Three.js-driven visuals reflect AI state and activity.
+- **Live telemetry**: System status monitors API connectivity, mic activity, and assistant readiness.
+
+---
+
+## Technology Stack
 
 ### Frontend
-- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router)
-- **Library**: [React 19](https://react.dev/)
-- **3D Rendering**: [Three.js](https://threejs.org/) / [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/getting-started/introduction)
-- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
-- **State Architecture**: Multi-context architecture (AI, Blob, and UI contexts)
+- **Next.js 16**
+- **React 19**
+- **Three.js** for 3D visuals
+- **Tailwind CSS 4**
+- **React Context** for AI and UI state management
 
 ### Backend
-- **Runtime**: [Node.js](https://nodejs.org/)
-- **Framework**: [Express.js](https://expressjs.com/)
-- **AI Integration**: [Groq SDK](https://console.groq.com/) (Llama-3.1-8b-instant)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Node.js** with **Express.js**
+- **Groq SDK** for AI chat and intent resolution
+- **TypeScript** for backend logic
+- **dotenv** for environment configuration
 
 ---
 
-## Getting Started
+## Setup
 
 ### Prerequisites
-- Node.js (v18 or higher)
-- npm or yarn package manager
-- A valid Groq API Key (obtainable via the [Groq Console](https://console.groq.com/))
+- Node.js 18 or higher
+- npm or yarn
+- Valid Groq API key
 
-### Installation
+### Install
 
-1. **Clone the Repository:**
-   ```bash
-   git clone https://github.com/RizDas/A.C.E.git
-   cd A.C.E
-   ```
+```bash
+git clone https://github.com/RizDas/A.C.E.git
+cd A.C.E
+```
 
-2. **Backend Configuration:**
-   ```bash
-   cd backend
-   npm install
-   ```
-   Create a `.env` file in the `backend` directory:
-   ```env
-   PORT=3001
-   GROQ_API_KEY=your_groq_api_key_here
-   ```
+#### Backend
 
-3. **Frontend Configuration:**
-   ```bash
-   cd ../frontend
-   npm install
-   ```
-   Create a `.env.local` file in the `frontend` directory:
-   ```env
-   NEXT_PUBLIC_API_URL=http://localhost:3001
-   ```
+```bash
+cd backend
+npm install
+```
 
-### Execution
+Create `backend/.env`:
 
-1. **Initialize Backend Server:**
-   ```bash
-   cd backend
-   npm run dev
-   ```
+```env
+PORT=3001
+GROQ_API_KEY=your_groq_api_key_here
+```
 
-2. **Initialize Frontend Application:**
-   ```bash
-   cd frontend
-   npm run dev
-   ```
+#### Frontend
 
-3. Access the interface at [http://localhost:3000](http://localhost:3000).
+```bash
+cd ../frontend
+npm install
+```
+
+Create `frontend/.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+### Run
+
+```bash
+cd backend
+npm run dev
+```
+
+```bash
+cd ../frontend
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## Project Architecture
+## Project Structure
 
 ```text
 A.C.E/
-├── backend/                # Express Server and AI Integration
+├── backend/                # Express server and Groq AI integration
 │   ├── src/
-│   │   ├── controllers/    # Request handlers for AI streaming
+│   │   ├── controllers/    # AI handlers for chat and intent resolution
 │   │   ├── routes/         # API endpoint definitions
-│   │   └── server.ts       # Main server entry point
+│   │   └── server.ts       # Backend entry point
 │   └── package.json
-├── frontend/               # Next.js Application Core
+├── frontend/               # Next.js frontend and UI features
 │   ├── src/
-│   │   ├── app/            # Application layout and routing
+│   │   ├── app/            # App router, layout, and page
 │   │   ├── components/     # Reusable UI components
-│   │   ├── context/        # State management layer
-│   │   ├── features/       # Modular feature implementations
-│   │   ├── hooks/          # Custom operational hooks
-│   │   ├── services/       # External service integrations (TTS/API)
-│   │   └── types/          # Static type definitions
+│   │   ├── context/        # React state contexts
+│   │   ├── features/       # Chat, blob, HUD, settings modules
+│   │   ├── hooks/          # Custom interaction hooks
+│   │   ├── services/       # AI, TTS, and navigation helpers
+│   │   └── types/          # Type definitions
 │   └── package.json
 └── README.md
 ```
@@ -126,7 +142,7 @@ A.C.E/
 
 ## Contributing
 
-Technical contributions and issue reports are welcome. Please adhere to standard pull request protocols for submissions.
+Contributions are welcome. Please open issues or pull requests while preserving A.C.E.'s AI-centered command flow.
 
 ---
 
